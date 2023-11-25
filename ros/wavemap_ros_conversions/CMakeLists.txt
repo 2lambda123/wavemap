@@ -1,26 +1,55 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(wavemap_ros_conversions)
 
-find_package(catkin_simple REQUIRED)
-catkin_simple(ALL_DEPS_REQUIRED)
+find_package(catkin REQUIRED COMPONENTS roscpp wavemap wavemap_msgs minkindr)
 
 # Compiler definitions and options
 add_wavemap_compile_definitions_and_options()
 
+include(FetchContent)
+FetchContent_Declare(
+    tracy
+    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+    GIT_TAG v0.10
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tracy)
+
+catkin_package(
+    INCLUDE_DIRS
+    include
+    LIBRARIES
+    ${PROJECT_NAME}
+    CATKIN_DEPENDS
+    roscpp
+    wavemap
+    wavemap_msgs
+)
+
+# Add minkindr as header-only library
+add_library(minkindr INTERFACE)
+target_include_directories(minkindr INTERFACE ${minkindr_SOURCE_DIR}/include)
+
 # Libraries
-cs_add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
     src/config_conversions.cc
     src/map_msg_conversions.cc
-    src/time_conversions.cc)
+    src/time_conversions.cc
+    )
+
+include_directories(include ${catkin_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${catkin_LIBRARIES} TracyClient minkindr)
 
 # Tests
 if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(
       test_${PROJECT_NAME}
       test/src/test_map_msg_conversions.cc)
-  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} gtest_main)
+  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} gtest_main minkindr)
 endif ()
 
 # Export
-cs_install()
-cs_export()
+install(DIRECTORY include/${PROJECT_NAME}/
+DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+# export()

@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(wavemap)
 
+add_definitions(-std=c++17)
+
 # Dependencies
-find_package(catkin
-    REQUIRED COMPONENTS glog_catkin eigen_catkin tracy_catkin minkindr)
+find_package(catkin REQUIRED)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glog REQUIRED libglog)
+pkg_check_modules(Eigen3 REQUIRED eigen3)
 
 if (ENABLE_BENCHMARKING)
   find_package(benchmark REQUIRED)
@@ -13,6 +18,25 @@ endif ()
 include(cmake/wavemap-extras.cmake)
 add_wavemap_compile_definitions_and_options()
 
+include(FetchContent)
+FetchContent_Declare(
+    tracy
+    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+    GIT_TAG v0.10
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tracy)
+
+FetchContent_Declare(
+    minkindr
+    GIT_REPOSITORY https://github.com/edwinpha/minkindr.git
+    GIT_TAG feature/without_catkin_simple
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(minkindr)
+
 # Setup catkin package
 catkin_package(
     INCLUDE_DIRS
@@ -20,11 +44,9 @@ catkin_package(
     test/include
     LIBRARIES
     ${PROJECT_NAME}
-    CATKIN_DEPENDS
-    glog_catkin
-    eigen_catkin
-    tracy_catkin
-    minkindr
+    DEPENDS
+    EIGEN3
+    glog
     CFG_EXTRAS
     wavemap-extras.cmake)
 # NOTE: The test headers are normally not exported (e.g. by adding test/include
@@ -32,8 +54,12 @@ catkin_package(
 # package's test headers, such that common tooling and test fixtures can be
 # reused in downstream wavemap packages.
 
+# Add minkindr as header-only library
+add_library(minkindr INTERFACE)
+target_include_directories(minkindr INTERFACE ${minkindr_SOURCE_DIR}/include)
+
 # For all targets
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 
 # Libraries
 # cmake-lint: disable=C0301
@@ -68,7 +94,7 @@ add_library(${PROJECT_NAME}
     src/integrator/integrator_factory.cc
     src/utils/stopwatch.cc
     src/utils/thread_pool.cc)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${catkin_LIBRARIES} ${Eigen3_INCLUDE_DIR} ${glog_INCLUDE_DIRS} TracyClient minkindr)
 
 # Install targets
 install(TARGETS ${PROJECT_NAME}
@@ -119,7 +145,7 @@ if (CATKIN_ENABLE_TESTING)
       test/src/utils/test_thread_pool.cc
       test/src/utils/test_tree_math.cc)
   target_include_directories(test_${PROJECT_NAME} PRIVATE test/include)
-  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} gtest_main)
+  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} gtest_main minkindr)
 endif ()
 
 # Benchmarks
@@ -127,9 +153,9 @@ if (ENABLE_BENCHMARKING)
   add_executable(benchmark_haar_transforms
       benchmark/benchmark_haar_transforms.cc)
   target_link_libraries(benchmark_haar_transforms ${PROJECT_NAME}
-      benchmark::benchmark)
+      benchmark::benchmark minkindr)
 
   add_executable(benchmark_sparse_vector benchmark/benchmark_sparse_vector.cc)
   target_link_libraries(benchmark_sparse_vector ${PROJECT_NAME}
-      benchmark::benchmark)
+      benchmark::benchmark minkindr)
 endif ()
