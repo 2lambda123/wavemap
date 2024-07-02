@@ -37,7 +37,7 @@ repos:
         id: yapf
 
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.2.3
+    rev: v3.2.4
     hooks:
       - name: Lint python files with pylint
         id: pylint
