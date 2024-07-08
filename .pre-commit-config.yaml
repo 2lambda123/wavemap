@@ -37,7 +37,7 @@ repos:
         id: yapf
 
   - repo: https://github.com/PyCQA/pylint
-    rev: v3.2.4
+    rev: v3.2.5
     hooks:
       - name: Lint python files with pylint
         id: pylint
@@ -116,7 +116,7 @@ repos:
         args: [ --rules="~MD013" ]
 
   - repo: https://github.com/rstcheck/rstcheck
-    rev: v6.2.0
+    rev: v6.2.4
     hooks:
       - name: Check syntax of reStructuredText
         id: rstcheck
