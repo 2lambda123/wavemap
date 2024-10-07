@@ -6,7 +6,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - name: Trim trailing whitespaces
         id: trailing-whitespace
@@ -87,7 +87,7 @@ repos:
         id: shellcheck
 
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.13.0-beta
+    rev: v2.13.1-beta
     hooks:
       - name: Lint dockerfiles with hadolint
         id: hadolint
