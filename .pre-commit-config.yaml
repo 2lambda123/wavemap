@@ -31,7 +31,7 @@ repos:
         id: check-merge-conflict
 
   - repo: https://github.com/google/yapf
-    rev: v0.40.2
+    rev: v0.43.0
     hooks:
       - name: Format python files with yapf
         id: yapf
