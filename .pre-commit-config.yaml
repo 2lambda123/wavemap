@@ -94,7 +94,7 @@ repos:
         args: [ --config=tooling/git_hook_configs/.hadolint.yaml ]
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.30.0
+    rev: 0.31.0
     hooks:
       - name: Check GitHub workflow file schema conformance
         id: check-github-workflows
